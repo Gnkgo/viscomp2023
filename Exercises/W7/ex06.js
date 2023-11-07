@@ -20,7 +20,7 @@ function main() {
   const canvas = document.getElementById("glcanvas");
 
   if (canvas == null) {
-    alert ("Cannot instantiate canvas. Consider using vscode-preview-server.");
+    alert("Cannot instantiate canvas. Consider using vscode-preview-server.");
   }
 
   // Initialize the GL context
@@ -50,21 +50,21 @@ function main() {
   for (var i = 0; i < mesh.vertices.length; i++) {
     mesh.vertexNormals[i] = 0;
   }
-  
+
   // helper function to extract vertex position from array of vertices
   function vec3FromArray(vertices, index) {
-    return vec3.fromValues(vertices[3*index+0], vertices[3*index+1], vertices[3*index+2]);
+    return vec3.fromValues(vertices[3 * index + 0], vertices[3 * index + 1], vertices[3 * index + 2]);
   }
 
   // ======== TASK 2 ========
-  
+
   // go through all triangles
-  for (var i = 0; i < mesh.indices.length/3; i++) {
+  for (var i = 0; i < mesh.indices.length / 3; i++) {
 
     // get vertices of this triangle
-    var v0 = vec3FromArray(mesh.vertices, mesh.indices[3*i+0]);
-    var v1 = vec3FromArray(mesh.vertices, mesh.indices[3*i+1]);
-    var v2 = vec3FromArray(mesh.vertices, mesh.indices[3*i+2]);
+    var v0 = vec3FromArray(mesh.vertices, mesh.indices[3 * i + 0]);
+    var v1 = vec3FromArray(mesh.vertices, mesh.indices[3 * i + 1]);
+    var v2 = vec3FromArray(mesh.vertices, mesh.indices[3 * i + 2]);
 
     // compute edges `a` and `b`
     // TODO ...
@@ -75,10 +75,10 @@ function main() {
     // add normal to all vertex normals of this triangle
     // TODO ...
   }
-  
+
   // since we've added normals of all triangles a vertex is connected to, 
   // we need to normalize the vertex normals
-  for (var i = 0; i < mesh.vertexNormals.length/3; i++) {
+  for (var i = 0; i < mesh.vertexNormals.length / 3; i++) {
     // TODO ...
   }
   // ====== END TASK 2 ======
@@ -92,21 +92,46 @@ function main() {
   // TODO ...
 
   // ====== END TASK 3a ======
-  
+
   // Initialize a shader program; this is where all the lighting
   // for the vertices and so forth is established.
   const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
 
   // ======== TASK 1a ========
 
+  const vertexPositions = mesh.vertices;
+  const normals = mesh.vertexNormals;
+  const indices = mesh.indices;
+
   // Vertices
-  // TODO ...
+  const vertexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositions), gl.STATIC_DRAW);
+
+  const aVertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
+  gl.vertexAttribPointer(aVertexPosition, 3, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(aVertexPosition);
 
   // Vertex Normals
-  // TODO ...
+  const normalBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+
+  const aVertexNormal = gl.getAttribLocation(shaderProgram, 'aVertexNormal');
+  gl.enableVertexAttribArray(aVertexNormal);
+  gl.vertexAttribPointer(aVertexNormal, 3, gl.FLOAT, false, 0, 0);
+
 
   // Faces (i.e., vertex indices for forming the triangles)
-  // TODO ...
+  const indexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+
+  const aVertexIndex = gl.getAttribLocation(shaderProgram, 'aVertexIndex');
+  gl.enableVertexAttribArray(aVertexIndex);
+  gl.vertexAttribPointer(aVertexIndex, 3, gl.FLOAT, false, 0, 0);
+
+
 
   // ====== END TASK 1a ======
 
@@ -129,8 +154,8 @@ function main() {
 
     // define a light position in world coordinates
     let r = 55.0;
-    var lightPos = vec4.fromValues(Math.sin(Math.PI/2) * r, Math.cos(Math.PI/2) * r, -60.0, 1.0);
-    
+    var lightPos = vec4.fromValues(Math.sin(Math.PI / 2) * r, Math.cos(Math.PI / 2) * r, -60.0, 1.0);
+
     // build the projection and model-view matrices
     const fieldOfView = (45 * Math.PI) / 180; // in radians
     const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
@@ -142,11 +167,11 @@ function main() {
     // maps object space to world space
     // translation by (0, -25, -60), rotation by -pi/2 around x, rotation by pi/3 around z
     const modelViewMatrix = mat4.fromValues(
-           0.5,       0,  -0.86602,       0, 
-      -0.86602,       0,      -0.5,       0, 
-             0,       1,         0,       0, 
-             0,     -25,       -60,       1
-      );
+      0.5, 0, -0.86602, 0,
+      -0.86602, 0, -0.5, 0,
+      0, 1, 0, 0,
+      0, -25, -60, 1
+    );
 
     // ======== TASK 3b ========
 
@@ -157,13 +182,20 @@ function main() {
     // ======== TASK 1b ========
 
     // set the shader program
-    // TODO ...
+    shaderProgram = initShaderProgram(gl, vsSource, fsSource);
 
     // bind the location of the uniform variables
-    // TODO ...
+
+
+    gl.useProgram(shaderProgram);
+
+    const uForegroundColor = gl.getUniformLocation(shaderProgram, 'uForegroundColor');
+    let col = vec3.fromValues(1., 1., 1.);
+    gl.uniform3f(uForegroundColor, col[0], col[1], col[2]);
+
 
     // finally, draw the mesh
-    // TODO ...
+    gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
 
     // ====== END TASK 1b ======
 
