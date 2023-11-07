@@ -182,19 +182,24 @@ function main() {
     // ======== TASK 1b ========
 
     // set the shader program
-    shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+    gl.useProgram(shaderProgram);
 
     // bind the location of the uniform variables
 
 
-    gl.useProgram(shaderProgram);
 
-    const uForegroundColor = gl.getUniformLocation(shaderProgram, 'uForegroundColor');
-    let col = vec3.fromValues(1., 1., 1.);
-    gl.uniform3f(uForegroundColor, col[0], col[1], col[2]);
+    var location = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
+    gl.uniformMatrix4fv(location, false, projectionMatrix);
 
+    var location = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
+    gl.uniformMatrix4fv(location, false, modelViewMatrix);
+
+    var location = gl.getUniformLocation(shaderProgram, 'lightPos');
+    gl.uniform4fv(location, lightPos);
 
     // finally, draw the mesh
+
+
     gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
 
     // ====== END TASK 1b ======
